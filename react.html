@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script src="./react.development.js"></script>
+  <script src="./babel.min.js"></script>
+  <title>Document</title>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="text/babel" src="./react-fiber-haixue.js"></script>
+  <script type="text/babel">
+    class App extends Component {
+      state = {
+        info: true
+      }
+      constructor(props) {
+        super(props)
+
+        // setTimeout(() => {
+        //   this.setState({
+        //     info: !this.state.info
+        //   })
+        // }, 1000)
+      }
+
+      render() {
+        return (
+          <div>
+            <span>hello</span>
+            <span>luy</span>
+            <div>{this.state.info ? 'imasync' : 'iminfo'}</div>
+          </div>
+        )
+      }
+    }
+    render(<App />, document.getElementById('root'))
+  </script>
+</body>
+
+</html>
