@@ -2,7 +2,7 @@
  * @Description: 理解react-fiber运行基本原理库
  * @Author: mengxiang
  * @Date: 2019-11-01 10:51:52
- * @LastEditTime: 2019-11-01 13:49:49
+ * @LastEditTime: 2019-11-01 16:36:28
  * @LastEditors: mengxiang
  */
 
@@ -11,29 +11,30 @@
  * @param {object} props 组件外部传的props参数
  */
 class Component {
-	constructor(props) {
-		this.props = props
-		this.state = this.state || {}
-	}
+  constructor(props) {
+    this.props = props
+    this.state = this.state || {}
+  }
 
-	setState(updater) {
-		scheduleWork(this, updater)
-	}
+  setState(updater) {
+    scheduleWork(this, updater)
+  }
 
-	render() {
-		throw 'should implement `render()` function'
-	}
+  render() {
+    throw 'should implement `render()` function'
+  }
 }
 
 Component.prototype.isReactComponent = true;
 
 // tag 代表了不同的 JSX 类型
 const tag = {
-	HostComponent: 'host',
-	ClassComponent: 'class',
-	HostRoot: 'root',
-	HostText: 6,
-	FunctionalComponent: 1
+  HostComponent: 'host',
+  ClassComponent: 'class',
+  HostRoot: 'root',
+  HostText: 6,
+  FunctionalComponent: 1,
+  HOST_COMPONENT: 'dom',
 }
 
 const EXPIRATION_TIME = 1 // ms async 逾期时间
@@ -51,13 +52,13 @@ const updateQueue = []
  * @param {fn}  callback 回调函数，render完了之后调用
  */
 function render(Vnode, Container, callback) {
-	updateQueue.push({
-		fromTag: tag.HostRoot,
-		stateNode: Container,
-		props: { children: Vnode }
-	})
+  updateQueue.push({
+    fromTag: tag.HostRoot,
+    stateNode: Container,
+    props: { children: Vnode }
+  })
 
-	requestIdleCallback(performWork) //开始干活
+  requestIdleCallback(performWork) //开始干活
 }
 
 /**
@@ -66,12 +67,12 @@ function render(Vnode, Container, callback) {
  * @param {object} partialState 新的state
  */
 function scheduleWork(instance, partialState) {
-	updateQueue.push({
-		fromTag: tag.ClassComponent,
-		stateNode: instance,
-		partialState: partialState
-	})
-	requestIdleCallback(performWork) //开始干活
+  updateQueue.push({
+    fromTag: tag.ClassComponent,
+    stateNode: instance,
+    partialState: partialState
+  })
+  requestIdleCallback(performWork) //开始干活
 }
 
 
@@ -102,7 +103,7 @@ function workLoop(deadline) {
     //  }
     // children里有个重要的参数是type fn App(props)
     nextUnitOfWork = createWorkInProgress(updateQueue)
-	}
+  }
   while (nextUnitOfWork && deadline.timeRemaining() > EXPIRATION_TIME) {
     nextUnitOfWork = performUnitOfWork(nextUnitOfWork)
   }
@@ -145,7 +146,7 @@ function getRoot(fiber) {
   while (_fiber.return) {
     _fiber = _fiber.return
   }
-	return _fiber
+  return _fiber
 }
 
 
@@ -292,7 +293,7 @@ function reconcileChildrenArray(currentFiber, newChildren) {
   // 对比节点，相同的标记更新
   // 不同的标记 替换
   // 多余的标记删除，并且记录下来
-  const arrayfiyChildren = Array.isArray(newChildren) ? [] : [ newChildren ] 
+  const arrayfiyChildren = Array.isArray(newChildren) ? newChildren : [newChildren]
 
   let index = 0
   let oldFiber = currentFiber.alternate ? currentFiber.alternate.child : null
@@ -342,4 +343,90 @@ function reconcileChildrenArray(currentFiber, newChildren) {
     index++
   }
   return currentFiber.child
+}
+
+function createFiber(tag, type, props, currentFiber, effectTag) {
+  return {
+    type,
+    tag,
+    props,
+    return: currentFiber,
+    effectTag,
+  }
+}
+
+function commitAllwork(topFiber) {
+  topFiber.effects.forEach(f => {
+    commitWork(f)
+  })
+
+  topFiber.stateNode._rootContainerFiber = topFiber
+  topFiber.effects = []
+  nextUnitOfWork = null
+  pendingCommit = null
+}
+
+function completeWork(currentFiber) {
+  if (currentFiber.tag === tag.ClassComponent) {
+    // 用于回溯最高点的 root
+    currentFiber.stateNode._internalfiber = currentFiber
+  }
+
+  if (currentFiber.return) {
+    const currentEffect = currentFiber.effects || [] //收集当前节点的 effect list
+    const currentEffectTag = currentFiber.effectTag ? [currentFiber] : []
+    const parentEffects = currentFiber.return.effects || []
+    currentFiber.return.effects = parentEffects.concat(currentEffect, currentEffectTag)
+  } else {
+    // 到达最顶端了
+    pendingCommit = currentFiber
+  }
+}
+
+
+function commitWork(effectFiber) {
+  if (effectFiber.tag === tag.HostRoot) {
+    // 代表 root 节点没什么必要操作
+    return
+  }
+
+  // 拿到parent的原因是，我们要将元素插入的点，插在父亲的下面
+  let domParentFiber = effectFiber.return
+  while (domParentFiber.tag === tag.ClassComponent || domParentFiber.tag === tag.FunctionalComponent) {
+    // 如果是 class 就直接跳过，因为 class 类型的fiber.stateNode 是其本身实例
+    domParentFiber = domParentFiber.return
+  }
+
+  //拿到父亲的真实 DOM
+  const domParent = domParentFiber.stateNode
+  if (effectFiber.effectTag === PLACEMENT) {
+    if (effectFiber.tag === tag.HostComponent || effectFiber.tag === tag.HOST_COMPONENT || effectFiber.tag === tag.HostText) {
+      //通过 tag 检查是不是真实的节点
+      domParent.appendChild(effectFiber.stateNode)
+    }
+    // 其他情况
+  } else if (effectFiber.effectTag == UPDATE) {
+    // 更新逻辑 只能是没实现
+  } else if (effectFiber.effectTag == DELETION) {
+    //删除多余的旧节点
+    commitDeletion(effectFiber, domParent)
+  }
+}
+
+function commitDeletion(fiber, domParent) {
+  let node = fiber
+  while (true) {
+    if (node.tag == tag.ClassComponent) {
+      node = node.child
+      continue
+    }
+    domParent.removeChild(node.stateNode)
+    while (node != fiber && !node.sibling) {
+      node = node.return
+    }
+    if (node == fiber) {
+      return
+    }
+    node = node.sibling
+  }
 }

@@ -5,7 +5,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <script src="./react.development.js"></script>
   <script src="./babel.min.js"></script>
   <title>Document</title>
 </head>
@@ -21,11 +20,11 @@
       constructor(props) {
         super(props)
 
-        // setTimeout(() => {
-        //   this.setState({
-        //     info: !this.state.info
-        //   })
-        // }, 1000)
+        setTimeout(() => {
+          this.setState({
+            info: !this.state.info
+          })
+        }, 1000)
       }
 
       render() {
