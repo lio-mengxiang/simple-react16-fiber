@@ -1,0 +1,16 @@
+    
+{
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "corejs": 2,
+          "useBuiltIns": "entry", // 做@babel/polyfill补充时，按需补充，用到什么才补充什么
+          "targets": {
+            "browsers": [ "ie >= 9", "chrome >= 62" ] // https://browserl.ist/ 用来查询你的语句支持什么浏览器
+          }
+        }
+      ],
+      "@babel/preset-react" // 转译jsx
+    ]
+  }

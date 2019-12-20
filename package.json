@@ -1,0 +1,43 @@
+{
+  "name": "simple-react16-fiber",
+  "version": "1.0.0",
+  "description": "react16 fiber版本简易实现，主要是帮助理解fiber架构 。(simple react16 with fiber, just help us to understand fiber)",
+  "main": "babel.min.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "cross-env webpack-dev-server --config ./build/webpack.dev.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lio-mengxiang/simple-react16-fiber.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "@babel/preset-react": "^7.0.0",
+    "@babel/runtime-corejs2": "^7.5.5",
+    "babel-loader": "^8.0.6"
+  },
+  "bugs": {
+    "url": "https://github.com/lio-mengxiang/simple-react16-fiber/issues"
+  },
+  "homepage": "https://github.com/lio-mengxiang/simple-react16-fiber#readme",
+  "dependencies": {
+    "css-loader": "^3.2.0",
+    "html-webpack-plugin": "^3.2.0",
+    "less-loader": "^5.0.0",
+    "open-browser-webpack-plugin": "0.0.5",
+    "postcss-loader": "^3.0.0",
+    "style-loader": "^1.0.0",
+    "thread-loader": "^2.1.3",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.9.0",
+    "webpack-merge": "^4.2.2",
+    "webpackbar": "^4.0.0",
+    "cross-env": "^5.1.1"
+  }
+}

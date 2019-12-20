@@ -1,8 +1,9 @@
 /*
- * @Description: 理解react-fiber运行基本原理库
+ * @Description: 理解react-fiber运行基本原理库，学(chao)习(xi)Foveluy实现的react框架实现和他的博客文章
+ * learn from https://github.com/Foveluy/rectx
  * @Author: mengxiang
  * @Date: 2019-11-01 10:51:52
- * @LastEditTime: 2019-11-01 16:36:28
+ * @LastEditTime: 2019-12-02 14:45:44
  * @LastEditors: mengxiang
  */
 
@@ -10,7 +11,7 @@
  * @description: react类组件的继承类
  * @param {object} props 组件外部传的props参数
  */
-class Component {
+export class Component {
   constructor(props) {
     this.props = props
     this.state = this.state || {}
@@ -27,6 +28,57 @@ class Component {
 
 Component.prototype.isReactComponent = true;
 
+/**
+ * @description: 包装React.createElement生成的虚拟dom
+ * @param {*}  
+ * @return: 
+ */
+function ReactElement(type, key, props) {
+  this.type = type;
+  this.key = key;
+  this.props = props;
+}
+
+/**
+ * @description: 生成虚拟dom的方法React.createElement
+ */
+export const React = {
+  nextReactRootIndex: 0,
+  /**
+   * @param {*} type 元素的 component 类型
+   * @param {*} config 元素配置
+   * @param {*} children 元素的子元素
+   */
+  createElement(type, config, children) {
+    const props = {};
+    let propName;
+    config = config || {};
+
+    let key = config.key || null;
+
+    for (propName in config) {
+      if (config.hasOwnProperty(propName) && propName !== "key") {
+        props[propName] = config[propName];
+      }
+    }
+
+    let childrenLength = arguments.length - 2;
+    if (childrenLength === 1) {
+      props.children = Array.isArray(children) ? children : [children];
+    } else if (childrenLength > 1) {
+      const childArray = [];
+      for (let i = 0; i < childrenLength; i++) {
+        childArray[i] = arguments[i + 2];
+      }
+      props.children = childArray;
+    }
+    return new ReactElement(type, key, props);
+  },
+
+  /**
+   * 自行添加上文中的render方法
+   */
+};
 // tag 代表了不同的 JSX 类型
 const tag = {
   HostComponent: 'host',
@@ -51,7 +103,7 @@ const updateQueue = []
  * @param {DomElement} Container 挂载的dom节点
  * @param {fn}  callback 回调函数，render完了之后调用
  */
-function render(Vnode, Container, callback) {
+export function render(Vnode, Container, callback) {
   updateQueue.push({
     fromTag: tag.HostRoot,
     stateNode: Container,
